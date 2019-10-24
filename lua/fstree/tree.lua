@@ -13,7 +13,7 @@ Tree.__index = Tree
 -- @param filter (e) -> bool: returns true if an item should be skipped
 -- @param order (a, b) -> bool: ordering function
 -- @return Tree representing directory hierarchy
-local function scan(dir, level, expanded, filter, order)
+function Tree.scan(dir, level, expanded, filter, order)
     local tree = Tree.new()
 
     for e in fs.lsdir(dir) do
@@ -29,7 +29,7 @@ local function scan(dir, level, expanded, filter, order)
     for k, v in pairs(expanded) do
         local pos = tree.revers[k]
         if pos then
-            local subtree = scan(k, expanded, level + 1)
+            local subtree = Tree.scan(k, expanded, level + 1)
             tree:insert(pos + 1, subtree)
         end
     end
@@ -150,4 +150,4 @@ function Tree:count(entry)
     return cnt
 end
 
-return {new = Tree.new, scan = scan}
+return Tree

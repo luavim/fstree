@@ -7,16 +7,26 @@ BUFOPTS = {
 }
 
 
-def test_open_new(nvim, testdir):
-    nvim.command("FsTreeOpen")
-    buf = nvim.buffers[2]
-
+def test_buf_opts(fsbuf):
     for k, v in BUFOPTS.items():
-        assert buf.options.get(k) == v
+        assert fsbuf.options.get(k) == v
 
-    assert buf[:] == [
+
+def test_open_new(fsbuf):
+    assert fsbuf[:] == [
         "+ d-1",
         "+ d-2",
         "+ d-3",
-        "+ d-4",
+        "+ z-4",
+        "  a-1",
+        "  b-1",
+        "  z-1",
     ]
+
+# test expand top dir
+# test expand middle dir
+# test expand bottom dir
+# test expand file
+# test expand top subdir
+# test expand middle subdir
+# test expand bottom subdir

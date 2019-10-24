@@ -8,47 +8,86 @@ import tempfile
 ARGV = ["nvim", "-u", "init.vim", "--headless", "--embed"]
 
 
-@pytest.fixture
-def nvim(request, testdir):
-    nvim = pynvim.attach("child", argv=ARGV)
-    request.addfinalizer(nvim.close)
-    nvim.command(f"lcd {testdir}")
-    return nvim
+ROOT = {
+    "d-1": {
+        "d-1-1": {
+            "d-1-1-1": {},
+        },
+        "d-1-2": {},
+        "d-1-3": {
+            "d-1-3-1": {},
+            "d-1-3-2": {},
+        },
+        "d-1-4": {
+            "f-1": "d-1-4-f-1",
+        },
+        "f-1": "d-1-f-1",
+        "f-2": "d-1-f-2",
+        "f-3": "d-1-f-3",
+    },
+    "d-2": {
+        "d-2-1": {},
+        "d-2-2": {},
+    },
+    "d-3": {},
+    "z-4": {
+        "z-4-1": {
+            "z-4-1-1": {},
+            "z-4-1-2": {},
+        },
+        "z-4-2": {
+            "z-4-2-1": {},
+        },
+        "z-4-5": {
+            "z-4-5-1": {},
+        },
+    },
+    "a-1": "a-1",
+    "b-1": "b-1",
+    "z-1": "z-1"
+}
 
-@pytest.fixture
-def testdir(request):
-    tmp = tempfile.gettempdir()
 
-    tmp = os.path.join(tmp, "fstree")
-    os.mkdir(tmp)
+def fwrite(path, content):
+    with open(path, "w") as fd:
+        fd.write(content)
 
-    os.mkdir(os.path.join(tmp, "d-1"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-1"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-1", "d-1-1-1"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-2"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-3"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-3", "d-1-3-1"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-3", "d-1-3-2"))
-    os.mkdir(os.path.join(tmp, "d-1", "d-1-4"))
 
-    os.mkdir(os.path.join(tmp, "d-2"))
-    os.mkdir(os.path.join(tmp, "d-2", "d-2-1"))
-    os.mkdir(os.path.join(tmp, "d-2", "d-2-2"))
+def mkdir(parent, subtree):
+    os.mkdir(parent)
+    for k, v in subtree.items():
+        if isinstance(v, (dict,)):
+            mkdir(os.path.join(parent, k), v)
+        elif isinstance(v, (str,)):
+            fwrite(os.path.join(parent, k), v)
 
-    os.mkdir(os.path.join(tmp, "d-3"))
 
-    os.mkdir(os.path.join(tmp, "d-4"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-1"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-1", "d-4-1-1"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-1", "d-4-1-2"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-2"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-2", "d-4-2-1"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-5"))
-    os.mkdir(os.path.join(tmp, "d-4", "d-4-5", "d-4-5-1"))
+@pytest.fixture(scope="session")
+def fsroot(request):
+    tmp = os.path.join(tempfile.gettempdir(), "fstree")
 
     def fin():
         shutil.rmtree(tmp, ignore_errors=False, onerror=None)
-    
+
     request.addfinalizer(fin)
 
+    mkdir(tmp, ROOT)
     return tmp
+
+@pytest.fixture(scope="session")
+def nvim(request, fsroot):
+    nvim = pynvim.attach("child", argv=ARGV)
+    request.addfinalizer(nvim.close)
+    nvim.command(f"lcd {fsroot}")
+    return nvim
+
+
+@pytest.fixture
+def fsbuf(request, nvim, fsroot):
+    nvim.command("FsTreeOpen")
+
+    for b in nvim.buffers:
+        if b.name.endswith(fsroot):
+            return b
+
+    raise ValueError("fstree buffer not found")

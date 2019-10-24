@@ -44,7 +44,6 @@ function Controller:addsubdir(dir, linenr, level)
     local filter = conf.filter()
     local order = conf.order()
 
-    
     local subtree = Tree.scan(dir, level, self.state.expanded, filter, order)
     self.state.tree:insert(linenr, subtree)
 
@@ -62,12 +61,22 @@ function Controller:opendir(dir)
     self.view:set_name(dir)
 end
 
+local function loadstate(win)
+    local ok, state = pcall(vim.api.nvim_win_get_var, win, VAR_STATE)
+    if not ok then
+        return nil
+    end
+
+    setmetatable(state.tree, Tree)
+    return state
+end
+
 local function invoke(action)
     local win = vim.api.nvim_get_current_win()
     local cwd = vim.api.nvim_command_output("pwd")
 
-    local ok, state = pcall(vim.api.nvim_win_get_var, win, VAR_STATE)
-    if not ok or state.cwd ~= cwd then
+    local state = loadstate(win)
+    if state == nil or state.cwd ~= cwd then
         state = {cwd = cwd, expanded = {}, tree = Tree.new()}
     end
 
