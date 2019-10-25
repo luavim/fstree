@@ -40,6 +40,35 @@ function Controller:open()
     self:opendir(self.state.cwd)
 end
 
+function Controller:expand()
+    local line = self.view:linenr()
+
+    local e = self.state.tree.entries[line]
+    if e and e.type == fs.TYPE.DIR and not self.state.expanded[e.path] then
+        self.state.expanded[e.path] = true
+    
+        self.view:set_lines(line - 1, {conf.formatter(self.state.expanded)(e)})
+        self:addsubdir(e.path, line + 1, e.level + 1)
+    end
+end
+
+function Controller:collapse()
+    local line = self.view:linenr()
+
+    local e = self.state.tree.entries[line]
+    if e and e.type == fs.TYPE.DIR and self.state.expanded[e.path] then
+        self.expanded[e.path] = nil
+
+        local pos = self.state.tree.revers[e.path]
+        local len = self.state.tree:count(e)
+
+        self.state.tree:remove(pos, len)
+
+        self.view:set_lines(line - 1, {conf.formatter(self.state.expanded)(e)})
+        self.view:del_lines(pos, len)
+    end
+end
+
 function Controller:addsubdir(dir, linenr, level)
     local filter = conf.filter()
     local order = conf.order()
@@ -48,7 +77,11 @@ function Controller:addsubdir(dir, linenr, level)
     self.state.tree:insert(linenr, subtree)
 
     local lines = map(subtree.entries, conf.formatter(self.state.expanded))
-    self.view:set_lines(linenr - 1, lines)
+    self.view:add_lines(linenr - 1, lines)
+end
+
+function Controller:clear()
+    self.view:clear()
 end
 
 function Controller:opendir(dir)
@@ -80,10 +113,7 @@ local function invoke(action)
         state = {cwd = cwd, expanded = {}, tree = Tree.new()}
     end
 
-    local view = View.new()
-    view:set_current()
-
-    action(Controller.new(view, state))
+    action(Controller.new(View.get(), state))
 
     vim.api.nvim_win_set_var(win, VAR_STATE, state)
 end
@@ -136,6 +166,10 @@ end
 --- Collapse the directory selected.
 function _M.collapse()
     invoke(function(c) c:collapse() end)
+end
+
+function _M.clear()
+    invoke(function(c) c:clear() end)
 end
 
 return _M

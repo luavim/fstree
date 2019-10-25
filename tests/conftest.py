@@ -21,9 +21,9 @@ ROOT = {
         "d-1-4": {
             "f-1": "d-1-4-f-1",
         },
-        "f-1": "d-1-f-1",
-        "f-2": "d-1-f-2",
-        "f-3": "d-1-f-3",
+        "a-1": "d-1-f-1",
+        "b-2": "d-1-f-2",
+        "c-3": "d-1-f-3",
     },
     "d-2": {
         "d-2-1": {},
@@ -85,9 +85,4 @@ def nvim(request, fsroot):
 @pytest.fixture
 def fsbuf(request, nvim, fsroot):
     nvim.command("FsTreeOpen")
-
-    for b in nvim.buffers:
-        if b.name.endswith(fsroot):
-            return b
-
-    raise ValueError("fstree buffer not found")
+    return nvim.current.buffer
