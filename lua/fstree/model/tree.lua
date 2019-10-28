@@ -1,6 +1,6 @@
 --- Data structure to store directory entries.
 ---
-local fs = require("fstree.fs")
+local fs = require("fstree.model.fs")
 
 
 local Tree = {}

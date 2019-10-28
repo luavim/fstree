@@ -1,5 +1,5 @@
 --- File system view.
----
+
 local BUFOPTS = {
     bt = "nofile",
     ft = "fstree",
@@ -10,7 +10,7 @@ local BUFOPTS = {
 local View = {}
 View.__index = View
 
-function View.get()
+function View.show()
     local self = setmetatable({}, View)
 
     local bt = vim.api.nvim_buf_get_option(0, "bt")
@@ -26,6 +26,7 @@ function View.get()
     vim.api.nvim_set_current_buf(buf)
     return self
 end
+
 
 function View:add_lines(pos, lines)
     self:set_content(pos, pos, true, lines)
@@ -53,8 +54,8 @@ function View:set_name(name)
     vim.api.nvim_buf_set_name(self.buf, name)
 end
 
-function View:linenr()
-    return vim.api.nvim_win_get_cursor(0)[1]
+function View:set_linenr(linenr)
+    return vim.api.nvim_win_set_cursor({linenr, 0})
 end
 
-return {get = View.get}
+return {get = View.show}

@@ -1,32 +1,14 @@
-let g:fstree_cfg = {
-    \ "indent": 2,
-    \ "sigopen": "-",
-    \ "sigclos": "+",
-    \ "exclude": ["^%.$", "^%..$"],
-    \ "ordering": "dirontop"
-\ }
+let g:fstree_fmt = {"indent": 2, "sigopen": "-", "sigclos": "+"}
+let g:fstree_sorting = "dirontop"
+let g:fstree_exclude = ["^%.$", "^%..$"]
 
-function s:open()
-    lua require("fstree").open()
-endfunction
+lua fstree = require("fstree")
 
-function s:expand()
-    lua require("fstree").expand()
-endfunction
-
-function s:collapse()
-    lua require("fstree").collapse()
-endfunction
-
-function s:clear()
-    lua require("fstree").clear()
-endfunction
-
-command FsTreeOpen :call s:open()
-command FsTreeExpand :call s:expand()
-command FsTreeCollapse :call s:collapse()
-" command TreeNext :call s:next()
-" command TreeBack :call s:back()
-" command TreeCollapse :call s:collapse()
-" command TreeLocate :call s:locate()
-command FsTreeClear :call s:clear()
+command FsTreeOpen :lua fstree.open()
+command FsTreeExpand :lua fstree.expand()
+command FsTreeCollapse :lua fstree.collapse()
+command FsTreeLocate :lua fstree.locate()
+command FsTreeNext :lua fstree.next()
+command FsTreeBack :lua fstree.back()
+command FsTreeMkDir :lua fstree.mkdir()
+command FsTreeMkFile :lua fstree.mkfile()

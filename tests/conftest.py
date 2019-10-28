@@ -77,6 +77,7 @@ def fsroot(request):
 @pytest.fixture(scope="session")
 def nvim(request, fsroot):
     nvim = pynvim.attach("child", argv=ARGV)
+    import pdb; pdb.set_trace()
     request.addfinalizer(nvim.close)
     nvim.command(f"lcd {fsroot}")
     return nvim
